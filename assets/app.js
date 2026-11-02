@@ -49,6 +49,59 @@ function updateDeviceSummary(output) {
   panel.hidden = false;
 }
 
+
+function parseFilesystemOutput(output) {
+  const rows = new Map();
+  for (const line of output.split(/\r?\n/).slice(1)) {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length < 6 || !/^\d+%$/.test(parts[4])) continue;
+    const [filesystem, size, used, available, usePercent, ...mountParts] = parts;
+    const mount = mountParts.join(' ');
+    const key = [filesystem, size, used, available, usePercent].join('|');
+    if (!rows.has(key)) rows.set(key, { filesystem, size, used, available, percent: Number(usePercent.replace('%', '')), mounts: [] });
+    if (mount && !rows.get(key).mounts.includes(mount)) rows.get(key).mounts.push(mount);
+  }
+  return [...rows.values()];
+}
+
+function renderStorageDashboard(output) {
+  const dashboard = $('storage-dashboard');
+  const entries = parseFilesystemOutput(output);
+  dashboard.replaceChildren();
+  if (!entries.length) { dashboard.hidden = true; return false; }
+  const heading = document.createElement('div');
+  heading.className = 'storage-heading';
+  const title = document.createElement('b');
+  title.textContent = 'ملخص وحدات التخزين';
+  const note = document.createElement('span');
+  note.textContent = entries.length + ' وحدات فريدة بعد دمج نقاط الربط المكررة';
+  heading.append(title, note);
+  dashboard.append(heading);
+  const grid = document.createElement('div');
+  grid.className = 'storage-grid';
+  entries.sort((a,b) => (a.filesystem.startsWith('/dev/') ? 0 : 1) - (b.filesystem.startsWith('/dev/') ? 0 : 1));
+  for (const item of entries) {
+    const card = document.createElement('article');
+    card.className = 'storage-item';
+    const top = document.createElement('div');
+    top.className = 'storage-item-top';
+    const fs = document.createElement('b'); fs.textContent = item.filesystem;
+    const percent = document.createElement('strong'); percent.textContent = item.percent + '%';
+    top.append(fs, percent);
+    const details = document.createElement('div'); details.className = 'storage-values';
+    for (const [label,value] of [['الإجمالي',item.size],['المستخدم',item.used],['المتاح',item.available]]) {
+      const cell=document.createElement('div'), small=document.createElement('span'), strong=document.createElement('b');
+      small.textContent=label; strong.textContent=value; cell.append(small,strong); details.append(cell);
+    }
+    const track=document.createElement('div'); track.className='storage-track';
+    const fill=document.createElement('span'); fill.style.width=Math.max(0,Math.min(100,item.percent))+'%'; track.append(fill);
+    const mounts=document.createElement('p'); mounts.className='storage-mounts';
+    mounts.textContent='نقاط الربط: '+item.mounts.join(' ، ');
+    card.append(top,details,track,mounts); grid.append(card);
+  }
+  dashboard.append(grid); dashboard.hidden=false; return true;
+}
+
 function setBusy(button, busy, label) {
   button.disabled = busy;
   if (busy) {
@@ -111,8 +164,10 @@ async function runReceiverOperation(operation, button) {
       throw new Error(data.error || data.stderr || 'فشل تنفيذ العملية.');
     }
     setStatus('receiver-status', 'متصل', 'ok');
-    showOutput(data.output || 'تم الاتصال بنجاح، ولا توجد مخرجات.');
-    if (operation === 'info') updateDeviceSummary(data.output || '');
+    const operationOutput = data.output || 'تم الاتصال بنجاح، ولا توجد مخرجات.';
+    showOutput(operationOutput);
+    if (operation === 'info') updateDeviceSummary(operationOutput);
+    if (operation === 'space') renderStorageDashboard(operationOutput);
   } catch (error) {
     setStatus('receiver-status', 'تعذر الاتصال', 'warn');
     showOutput('تعذر تنفيذ الطلب: ' + (error.message || 'خطأ غير معروف') +
