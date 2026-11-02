@@ -248,6 +248,117 @@ function renderBackupHistory() {
 
 renderBackupHistory();
 
+function readTarString(bytes, start, length) {
+  let end = start;
+  while (end < start + length && bytes[end] !== 0) end++;
+  return new TextDecoder().decode(bytes.subarray(start, end)).trim();
+}
+
+function readTarOctal(bytes, start, length) {
+  const raw = readTarString(bytes, start, length).replace(/\s/g, '');
+  if (!raw) return 0;
+  if (!/^[0-7]+$/.test(raw)) throw new Error('حقل حجم غير مدعوم داخل أرشيف TAR.');
+  const value = Number.parseInt(raw, 8);
+  if (!Number.isSafeInteger(value)) throw new Error('حجم سجل غير صالح داخل الأرشيف.');
+  return value;
+}
+
+function inspectTarArchive(bytes) {
+  const blockSize = 512;
+  let offset = 0;
+  let entries = 0;
+  let regularFiles = 0;
+  let ended = false;
+  const names = [];
+  while (offset + blockSize <= bytes.length) {
+    const header = bytes.subarray(offset, offset + blockSize);
+    const isZero = header.every(value => value === 0);
+    if (isZero) {
+      if (offset + blockSize * 2 > bytes.length ||
+          !bytes.subarray(offset + blockSize, offset + blockSize * 2).every(value => value === 0)) {
+        throw new Error('نهاية أرشيف TAR غير مكتملة.');
+      }
+      ended = true;
+      break;
+    }
+    const storedChecksum = readTarOctal(header, 148, 8);
+    let calculatedChecksum = 0;
+    for (let i = 0; i < blockSize; i++) calculatedChecksum += (i >= 148 && i < 156) ? 32 : header[i];
+    if (storedChecksum !== calculatedChecksum) {
+      throw new Error('فشل التحقق من سجل داخل TAR؛ قد يكون الملف تالفاً.');
+    }
+    const name = readTarString(header, 0, 100);
+    const prefix = readTarString(header, 345, 155);
+    const fullName = prefix ? prefix + '/' + name : name;
+    const size = readTarOctal(header, 124, 12);
+    const type = header[156];
+    const dataStart = offset + blockSize;
+    const paddedSize = Math.ceil(size / blockSize) * blockSize;
+    if (!Number.isSafeInteger(paddedSize) || dataStart + paddedSize > bytes.length) {
+      throw new Error('بيانات أحد الملفات مبتورة أو حجمها غير صحيح.');
+    }
+    entries++;
+    if (name) names.push(fullName);
+    if (type === 0 || type === 48 || type === 7) regularFiles++;
+    offset = dataStart + paddedSize;
+  }
+  if (!ended) throw new Error('لم يتم العثور على علامة نهاية سليمة لأرشيف TAR.');
+  if (!entries) throw new Error('الأرشيف لا يحتوي على سجلات ملفات.');
+  return { entries, regularFiles, names };
+}
+
+async function verifySelectedBackup(file) {
+  const status = $('backup-verify-status');
+  const button = $('verify-backup');
+  const setVerifyStatus = (message, kind = '') => {
+    status.textContent = message;
+    status.className = 'backup-status ' + kind;
+  };
+  if (!file) {
+    setVerifyStatus('اختار ملف النسخة الأول.', 'is-warning');
+    return;
+  }
+  if (!/\.(tar\.gz|tgz)$/i.test(file.name)) {
+    setVerifyStatus('اختار ملف بامتداد .tar.gz أو .tgz.', 'is-warning');
+    return;
+  }
+  if (!('DecompressionStream' in window)) {
+    setVerifyStatus('المتصفح الحالي لا يدعم فحص GZIP؛ جرّب أحدث إصدار من Chrome أو Edge.', 'is-warning');
+    return;
+  }
+  if (file.size > 250 * 1024 * 1024) {
+    setVerifyStatus('حجم الملف أكبر من الحد الحالي للفحص داخل المتصفح (250 MB).', 'is-warning');
+    return;
+  }
+  setBusy(button, true, 'جارٍ فحص الملف...');
+  setVerifyStatus('جارٍ فك ضغط GZIP وفحص سجلات TAR محلياً…', 'is-progress');
+  try {
+    const stream = file.stream().pipeThrough(new DecompressionStream('gzip'));
+    const decompressed = await new Response(stream).arrayBuffer();
+    if (decompressed.byteLength > 1024 * 1024 * 1024) {
+      throw new Error('حجم البيانات بعد فك الضغط يتجاوز حد الفحص داخل المتصفح (1 GB).');
+    }
+    const result = inspectTarArchive(new Uint8Array(decompressed));
+    const summary = 'الملف سليم بنيوياً — ' + result.entries + ' سجل، منها ' + result.regularFiles + ' ملفاً — ' + formatBackupSize(file.size);
+    setVerifyStatus(summary, 'is-success');
+    showOutput('نجح الفحص البنيوي لملف النسخة الاحتياطية.\n' + summary + '\nتم فحص GZIP ومجموع التحقق لسجلات TAR وعلامة نهاية الأرشيف.\nلم يتم رفع الملف أو تعديله.');
+  } catch (error) {
+    const message = 'فشل الفحص: ' + (error.message || 'الملف غير صالح أو تالف.');
+    setVerifyStatus(message, 'is-warning');
+    showOutput(message + '\nلم يتم تعديل ملف النسخة الأصلي.');
+  } finally {
+    setBusy(button, false);
+  }
+}
+
+$('backup-file')?.addEventListener('change', event => {
+  const file = event.target.files?.[0];
+  $('verify-backup').disabled = !file;
+  $('backup-verify-status').textContent = file ? file.name + ' — ' + formatBackupSize(file.size) : 'لم يتم اختيار ملف بعد';
+  $('backup-verify-status').className = 'backup-status';
+});
+$('verify-backup')?.addEventListener('click', () => verifySelectedBackup($('backup-file')?.files?.[0]));
+
 function setBusy(button, busy, label) {
   button.disabled = busy;
   if (busy) {
