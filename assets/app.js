@@ -403,6 +403,8 @@ $('save-bridge').addEventListener('click', () => {
 
 $('check-bridge').addEventListener('click', async (event) => {
   const button = event.currentTarget;
+  let base;
+  try { base = bridgeBase(); } catch (error) { setStatus('bridge-status', 'عنوان غير صالح', 'warn'); $('status-note').textContent = error.message; return; }
   setBusy(button, true, 'جارٍ فحص الجسر...');
   setStatus('bridge-status', 'جارٍ الفحص', 'warn');
   try {
@@ -419,15 +421,22 @@ $('check-bridge').addEventListener('click', async (event) => {
   }
 });
 
+let receiverRequestActive = false;
+
 async function runReceiverOperation(operation, button) {
+  if (receiverRequestActive) return;
+  if (!['info', 'space', 'services'].includes(operation)) { showOutput('العملية المطلوبة غير مسموح بها من الواجهة.'); return; }
+  let base;
+  try { base = bridgeBase(); } catch (error) { showOutput(error.message); return; }
   if (!receiverCredentials) {
     showOutput('اكتب بيانات الرسيفر واضغط «اختبار اتصال الرسيفر» أولاً.');
     return;
   }
+  receiverRequestActive = true;
   setBusy(button, true);
   showOutput('جارٍ الاتصال بالرسيفر وتنفيذ الفحص...');
   try {
-    const response = await fetch(bridgeBase() + '/run', {
+    const response = await fetch(base + '/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
@@ -448,6 +457,7 @@ async function runReceiverOperation(operation, button) {
     showOutput('تعذر تنفيذ الطلب: ' + (error.message || 'خطأ غير معروف') +
       '\n\nراجع عنوان IP وكلمة المرور، وتأكد من تفعيل SSH، ومن تسجيل بصمة SSH للرسيفر على الكمبيوتر.');
   } finally {
+    receiverRequestActive = false;
     setBusy(button, false);
   }
 }
@@ -456,8 +466,8 @@ $('test-receiver').addEventListener('click', async (event) => {
   const host = $('receiver-ip').value.trim();
   const username = $('receiver-user').value.trim() || 'root';
   const password = $('receiver-pass').value;
-  if (!host || !password) {
-    showOutput('اكتب عنوان IP وكلمة مرور SSH أولاً. لن يتم حفظ كلمة المرور.');
+  if (!validPrivateIPv4(host) || !password) {
+    showOutput('اكتب عنوان IPv4 خاص داخل الشبكة المحلية وكلمة مرور SSH. لن يتم حفظ كلمة المرور.');
     return;
   }
   receiverCredentials = { host, port: 22, username, password };
@@ -472,6 +482,8 @@ document.querySelectorAll('[data-operation]').forEach((button) => {
 $('download-backup').addEventListener('click', async (event) => {
   const button = event.currentTarget;
   const status = $('backup-status');
+  let base;
+  try { base = bridgeBase(); } catch (error) { if (status) { status.textContent = error.message; status.className = 'backup-status is-warning'; } return; }
   const setBackupStatus = (message, kind = 'muted') => {
     if (status) {
       status.textContent = message;
@@ -484,6 +496,8 @@ $('download-backup').addEventListener('click', async (event) => {
     setBackupStatus(message, 'is-warning');
     return;
   }
+  if (receiverRequestActive) return;
+  receiverRequestActive = true;
   setBusy(button, true, 'جارٍ إنشاء النسخة...');
   setBackupStatus('جارٍ تجهيز ملفات الإعدادات من الرسيفر…', 'is-progress');
   showOutput('جارٍ إنشاء النسخة الاحتياطية وتنزيلها على الكمبيوتر...');
@@ -529,6 +543,7 @@ $('download-backup').addEventListener('click', async (event) => {
     setBackupStatus(message, 'is-warning');
     showOutput(message);
   } finally {
+    receiverRequestActive = false;
     setBusy(button, false);
   }
 });
