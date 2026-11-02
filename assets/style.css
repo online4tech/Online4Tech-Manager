@@ -54,3 +54,17 @@ button:disabled{opacity:.6;cursor:wait}
 @media(max-width:800px){.services-grid{grid-template-columns:1fr}}
 
 .backup-center{margin:18px 0 20px;padding:22px}.backup-includes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.backup-includes>div{padding:14px;background:#0a1320;border:1px solid #263449;border-radius:11px}.backup-notice{padding:13px 15px;background:#282316;border:1px solid #594827;border-radius:10px;color:#e8d3a4;font-size:11px;line-height:1.9}.backup-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:17px}.backup-status{font-size:11px;color:var(--muted)}.backup-status.is-success{color:var(--green)}.backup-status.is-warning{color:#f2c16e}@media(max-width:800px){.backup-includes{grid-template-columns:1fr}.backup-actions{align-items:stretch;flex-direction:column}}
+
+.backup-history{margin-top:20px;padding-top:17px;border-top:1px solid var(--line)}
+.backup-history-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.backup-history-head>b{font-size:14px}
+.backup-history-note,.backup-history-empty{font-size:10px;color:var(--muted);line-height:1.8}
+.backup-history-list{display:grid;gap:9px}
+.backup-history-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px;background:#0a1320;border:1px solid #263449;border-radius:10px;min-width:0}
+.backup-history-details{display:grid;gap:3px;min-width:0}
+.backup-history-details>b,.backup-history-details b{font-size:11px;overflow-wrap:anywhere;direction:ltr;text-align:right}
+.backup-history-details span,.backup-history-details small{font-size:10px;color:var(--muted)}
+.backup-history-details small{color:var(--green)}
+.text-button{border:0;background:transparent;color:#8fc2ff;font:600 10px 'Cairo';cursor:pointer;padding:6px;white-space:nowrap}
+.text-button.danger{color:#f28b8b}
+@media(max-width:800px){.backup-history-item{align-items:flex-start;flex-direction:column}.backup-history-head{align-items:flex-start}}
