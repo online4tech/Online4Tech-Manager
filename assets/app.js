@@ -22,20 +22,24 @@ function showOutput(value) {
 
 
 function readField(source, name) {
-  const match = source.match(new RegExp(name + '=([^ ]+)'));
+  // Match a complete key only; avoid matching "version" inside "image-version".
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = source.match(new RegExp('(?:^|[\\s])' + escaped + '=([^\\s]+)', 'm'));
   return match ? match[1] : '';
 }
 
 function updateDeviceSummary(output) {
   if (!output || !output.includes('image-version')) return;
   const panel = $('device-summary');
-  const brand = readField(output, 'machine_brand');
-  const model = readField(output, 'machine_name');
-  const version = readField(output, 'version');
-  const build = readField(output, 'build');
-  const distro = readField(output, 'distro');
+  const brand = readField(output, 'machine_brand') || readField(output, 'brand');
+  const model = readField(output, 'machine_name') || readField(output, 'machinemake');
+  const version = readField(output, 'version') || readField(output, 'imageversion');
+  const build = readField(output, 'build') || readField(output, 'imagebuild');
+  const distro = readField(output, 'distro') || readField(output, 'creator');
   const uptimeSection = output.split('--- uptime ---')[1] || '';
-  const uptime = uptimeSection.trim().split(String.fromCharCode(10))[0].trim();
+  const uptimeLine = uptimeSection.trim().split(String.fromCharCode(10))[0].trim();
+  const uptimeMatch = uptimeLine.match(/\\bup\\s+(.+?)(?:,\\s*\\d+\\s+users?|,\\s*load average:|$)/i);
+  const uptime = uptimeMatch ? uptimeMatch[1].trim() : uptimeLine;
   $('device-model').textContent = [brand, model].filter(Boolean).join(' ') || 'Enigma2';
   $('device-image').textContent = [distro, version].filter(Boolean).join(' ') || 'غير محدد';
   $('device-build').textContent = build || 'غير متاح';
