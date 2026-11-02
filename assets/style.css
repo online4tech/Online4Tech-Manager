@@ -52,3 +52,5 @@ button:disabled{opacity:.6;cursor:wait}
 .service-process-list li>b{font-size:10px;color:var(--blue)}
 .service-process-list code{font:10px/1.7 Consolas,monospace;direction:ltr;text-align:left;overflow-wrap:anywhere;color:#d3e1f4}
 @media(max-width:800px){.services-grid{grid-template-columns:1fr}}
+
+.backup-center{margin:18px 0 20px;padding:22px}.backup-includes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.backup-includes>div{padding:14px;background:#0a1320;border:1px solid #263449;border-radius:11px}.backup-notice{padding:13px 15px;background:#282316;border:1px solid #594827;border-radius:10px;color:#e8d3a4;font-size:11px;line-height:1.9}.backup-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:17px}.backup-status{font-size:11px;color:var(--muted)}.backup-status.is-success{color:var(--green)}.backup-status.is-warning{color:#f2c16e}@media(max-width:800px){.backup-includes{grid-template-columns:1fr}.backup-actions{align-items:stretch;flex-direction:column}}
