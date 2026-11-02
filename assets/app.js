@@ -278,12 +278,22 @@ document.querySelectorAll('[data-operation]').forEach((button) => {
 
 $('download-backup').addEventListener('click', async (event) => {
   const button = event.currentTarget;
+  const status = $('backup-status');
+  const setBackupStatus = (message, kind = 'muted') => {
+    if (status) {
+      status.textContent = message;
+      status.className = 'backup-status ' + kind;
+    }
+  };
   if (!receiverCredentials) {
-    showOutput('اختبر اتصال الرسيفر أولاً.');
+    const message = 'اختبر اتصال الرسيفر أولاً قبل إنشاء النسخة.';
+    showOutput(message);
+    setBackupStatus(message, 'is-warning');
     return;
   }
   setBusy(button, true, 'جارٍ إنشاء النسخة...');
-  showOutput('جارٍ إنشاء النسخة الاحتياطية. قد تستغرق العملية بعض الوقت...');
+  setBackupStatus('جارٍ تجهيز ملفات الإعدادات من الرسيفر…', 'is-progress');
+  showOutput('جارٍ إنشاء النسخة الاحتياطية وتنزيلها على الكمبيوتر...');
   try {
     const response = await fetch(bridgeBase() + '/download-backup', {
       method: 'POST',
@@ -296,17 +306,31 @@ $('download-backup').addEventListener('click', async (event) => {
       throw new Error(data.error || 'تعذر إنشاء النسخة الاحتياطية.');
     }
     const blob = await response.blob();
+    if (!blob.size) throw new Error('ملف النسخة الاحتياطية وصل فارغاً.');
+    const now = new Date();
+    const pad = value => String(value).padStart(2, '0');
+    const stamp = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + '-' +
+      pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+    const filename = 'online4tech-enigma2-backup-' + stamp + '.tar.gz';
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'online4tech-enigma2-backup.tar.gz';
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
-    showOutput('تم تجهيز ملف النسخة الاحتياطية وبدء تنزيله على الكمبيوتر.');
+    window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+    const size = blob.size < 1024 * 1024
+      ? (blob.size / 1024).toFixed(1) + ' KB'
+      : (blob.size / (1024 * 1024)).toFixed(2) + ' MB';
+    const time = now.toLocaleString('ar-EG');
+    const success = 'تم تجهيز النسخة وبدء تنزيلها — ' + size + ' — ' + time;
+    setBackupStatus(success, 'is-success');
+    showOutput(success + '\nاسم الملف: ' + filename + '\nالمحتويات: /etc/enigma2 و /etc/tuxbox');
   } catch (error) {
-    showOutput('فشل النسخ الاحتياطي: ' + (error.message || 'خطأ غير معروف'));
+    const message = 'فشل النسخ الاحتياطي: ' + (error.message || 'خطأ غير معروف');
+    setBackupStatus(message, 'is-warning');
+    showOutput(message);
   } finally {
     setBusy(button, false);
   }
