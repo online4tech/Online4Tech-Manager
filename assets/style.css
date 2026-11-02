@@ -68,3 +68,11 @@ button:disabled{opacity:.6;cursor:wait}
 .text-button{border:0;background:transparent;color:#8fc2ff;font:600 10px 'Cairo';cursor:pointer;padding:6px;white-space:nowrap}
 .text-button.danger{color:#f28b8b}
 @media(max-width:800px){.backup-history-item{align-items:flex-start;flex-direction:column}.backup-history-head{align-items:flex-start}}
+
+
+.backup-verify{margin-top:20px;padding-top:17px;border-top:1px solid var(--line)}
+.backup-verify>p{max-width:850px}
+.backup-verify input[type=file]{margin-top:7px;padding:10px;font-size:11px}
+.backup-verify .backup-actions{margin-top:12px}
+.backup-verify button:disabled{opacity:.45;cursor:not-allowed}
+.backup-status.is-progress{color:#8fc2ff}
