@@ -36,3 +36,5 @@ button:disabled{opacity:.6;cursor:wait}
 .storage-track span{display:block;height:100%;background:linear-gradient(90deg,#42d39a,#55a6ff);border-radius:20px}
 .storage-mounts{margin:10px 0 0;color:var(--muted);font-size:10px;line-height:1.8;overflow-wrap:anywhere}
 @media(max-width:800px){.storage-grid{grid-template-columns:1fr}.storage-heading{align-items:flex-start;flex-direction:column}.storage-values b{font-size:12px}}
+
+.storage-item-meta{display:flex;align-items:center;gap:9px}.storage-kind{font-size:10px;color:#a9bed8;background:#1b2b40;border:1px solid #30445f;border-radius:20px;padding:3px 8px;white-space:nowrap}
