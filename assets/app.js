@@ -20,6 +20,29 @@ function showOutput(value) {
   output.textContent = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
 }
 
+
+function readField(source, name) {
+  const match = source.match(new RegExp('(?:^|\\\\s)' + name + '=([^\\\\s]+)', 'm'));
+  return match ? match[1] : '';
+}
+
+function updateDeviceSummary(output) {
+  if (!output || !output.includes('image-version')) return;
+  const panel = $('device-summary');
+  const brand = readField(output, 'machine_brand');
+  const model = readField(output, 'machine_name');
+  const version = readField(output, 'version');
+  const build = readField(output, 'build');
+  const distro = readField(output, 'distro');
+  const uptimeSection = output.split('--- uptime ---')[1] || '';
+  const uptime = uptimeSection.trim().split('\\n')[0].trim();
+  $('device-model').textContent = [brand, model].filter(Boolean).join(' ') || 'Enigma2';
+  $('device-image').textContent = [distro, version].filter(Boolean).join(' ') || 'غير محدد';
+  $('device-build').textContent = build || 'غير متاح';
+  $('device-uptime').textContent = uptime || 'غير متاح';
+  panel.hidden = false;
+}
+
 function setBusy(button, busy, label) {
   button.disabled = busy;
   if (busy) {
@@ -83,6 +106,7 @@ async function runReceiverOperation(operation, button) {
     }
     setStatus('receiver-status', 'متصل', 'ok');
     showOutput(data.output || 'تم الاتصال بنجاح، ولا توجد مخرجات.');
+    if (operation === 'info') updateDeviceSummary(data.output || '');
   } catch (error) {
     setStatus('receiver-status', 'تعذر الاتصال', 'warn');
     showOutput('تعذر تنفيذ الطلب: ' + (error.message || 'خطأ غير معروف') +
