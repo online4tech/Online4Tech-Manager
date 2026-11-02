@@ -38,7 +38,7 @@ function updateDeviceSummary(output) {
   const distro = readField(output, 'distro') || readField(output, 'creator');
   const uptimeSection = output.split('--- uptime ---')[1] || '';
   const uptimeLine = uptimeSection.trim().split(String.fromCharCode(10))[0].trim();
-  const uptimeMatch = uptimeLine.match(/\\bup\\s+(.+?)(?:,\\s*\\d+\\s+users?|,\\s*load average:|$)/i);
+  const uptimeMatch = uptimeLine.match(/\bup\s+(.+?)(?:,\s*\d+\s+users?|,\s*load average:|$)/i);
   const uptime = uptimeMatch ? uptimeMatch[1].trim() : uptimeLine;
   $('device-model').textContent = [brand, model].filter(Boolean).join(' ') || 'Enigma2';
   $('device-image').textContent = [distro, version].filter(Boolean).join(' ') || 'غير محدد';
