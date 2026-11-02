@@ -38,3 +38,17 @@ button:disabled{opacity:.6;cursor:wait}
 @media(max-width:800px){.storage-grid{grid-template-columns:1fr}.storage-heading{align-items:flex-start;flex-direction:column}.storage-values b{font-size:12px}}
 
 .storage-item-meta{display:flex;align-items:center;gap:9px}.storage-kind{font-size:10px;color:#a9bed8;background:#1b2b40;border:1px solid #30445f;border-radius:20px;padding:3px 8px;white-space:nowrap}
+
+.services-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.service-item{min-width:0;padding:15px;background:#0a1320;border:1px solid #263449;border-radius:12px}
+.service-item-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.service-item-top>b{font-size:16px}
+.service-status{font-size:10px;border-radius:20px;padding:4px 9px;white-space:nowrap}
+.service-status.is-running{color:#72e0b1;background:#12352e;border:1px solid #24634f}
+.service-status.is-unknown{color:#d5c49e;background:#30291b;border:1px solid #65512b}
+.service-description,.service-count{font-size:11px;color:var(--muted);margin:8px 0}
+.service-process-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.service-process-list li{padding:9px;background:#111d2d;border-radius:8px;display:grid;gap:5px;min-width:0}
+.service-process-list li>b{font-size:10px;color:var(--blue)}
+.service-process-list code{font:10px/1.7 Consolas,monospace;direction:ltr;text-align:left;overflow-wrap:anywhere;color:#d3e1f4}
+@media(max-width:800px){.services-grid{grid-template-columns:1fr}}
