@@ -22,8 +22,8 @@ function showOutput(value) {
 
 
 function readField(source, name) {
-  const match = source.match(new RegExp('(?:^|\\\\s)' + name + '=([^\\\\s]+)', 'm'));
-  return match ? match[1] : '';
+  const token = source.split(/\\s+/).find((part) => part.startsWith(name + '='));
+  return token ? token.slice(name.length + 1) : '';
 }
 
 function updateDeviceSummary(output) {
@@ -35,7 +35,7 @@ function updateDeviceSummary(output) {
   const build = readField(output, 'build');
   const distro = readField(output, 'distro');
   const uptimeSection = output.split('--- uptime ---')[1] || '';
-  const uptime = uptimeSection.trim().split('\\n')[0].trim();
+  const uptime = uptimeSection.trim().split(/\\r?\\n/)[0].trim();
   $('device-model').textContent = [brand, model].filter(Boolean).join(' ') || 'Enigma2';
   $('device-image').textContent = [distro, version].filter(Boolean).join(' ') || 'غير محدد';
   $('device-build').textContent = build || 'غير متاح';
