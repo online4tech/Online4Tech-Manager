@@ -109,6 +109,80 @@ function renderStorageDashboard(output) {
   dashboard.append(grid); dashboard.hidden=false; return true;
 }
 
+
+function parseServiceOutput(output) {
+  const sections = {};
+  let section = '';
+  for (const line of output.split(/\r?\n/)) {
+    const heading = line.match(/^---\s*(.*?)\s*---$/);
+    if (heading) { section = heading[1].toLowerCase(); sections[section] = []; continue; }
+    if (section && /^\d+\s+/.test(line.trim())) sections[section].push(line.trim());
+  }
+  const enigmaLines = (sections['enigma2'] || []).filter(line => /\/usr\/bin\/enigma2(?:\.sh)?(?:\s|$)/.test(line));
+  const caLines = sections['oscam / ncam / cccam'] || [];
+  const pick = regex => caLines.filter(line => regex.test(line));
+  return [
+    { name: 'Enigma2', processes: enigmaLines, detail: 'محرك واجهة الرسيفر' },
+    { name: 'OSCam', processes: pick(/OSCam/i), detail: 'خدمة OSCam' },
+    { name: 'NCam', processes: pick(/NCam/i), detail: 'خدمة NCam' },
+    { name: 'CCcam', processes: pick(/CCcam/i), detail: 'خدمة CCcam' }
+  ];
+}
+
+function renderServicesDashboard(output) {
+  const dashboard = $('services-dashboard');
+  const services = parseServiceOutput(output);
+  dashboard.replaceChildren();
+  const heading = document.createElement('div');
+  heading.className = 'storage-heading';
+  const title = document.createElement('b');
+  title.textContent = 'حالة خدمات الرسيفر';
+  const note = document.createElement('span');
+  const running = services.filter(item => item.processes.length).length;
+  note.textContent = running + ' خدمات ظهرت لها عمليات من أصل ' + services.length;
+  heading.append(title, note);
+  dashboard.append(heading);
+  const grid = document.createElement('div');
+  grid.className = 'services-grid';
+  for (const service of services) {
+    const card = document.createElement('article');
+    card.className = 'service-item';
+    const top = document.createElement('div');
+    top.className = 'service-item-top';
+    const name = document.createElement('b');
+    name.textContent = service.name;
+    const status = document.createElement('span');
+    status.className = service.processes.length ? 'service-status is-running' : 'service-status is-unknown';
+    status.textContent = service.processes.length ? 'يعمل — مرصود' : 'لم تُرصد عملية';
+    top.append(name, status);
+    const desc = document.createElement('p');
+    desc.className = 'service-description';
+    desc.textContent = service.detail;
+    const count = document.createElement('div');
+    count.className = 'service-count';
+    count.textContent = service.processes.length ? 'عدد العمليات: ' + service.processes.length : 'لا توجد عملية مطابقة في نتيجة الفحص';
+    card.append(top, desc, count);
+    if (service.processes.length) {
+      const list = document.createElement('ul');
+      list.className = 'service-process-list';
+      for (const process of service.processes) {
+        const item = document.createElement('li');
+        const pid = document.createElement('b');
+        pid.textContent = 'PID ' + process.split(/\s+/, 1)[0];
+        const command = document.createElement('code');
+        command.textContent = process.replace(/^\d+\s+/, '');
+        item.append(pid, command);
+        list.append(item);
+      }
+      card.append(list);
+    }
+    grid.append(card);
+  }
+  dashboard.append(grid);
+  dashboard.hidden = false;
+  return true;
+}
+
 function setBusy(button, busy, label) {
   button.disabled = busy;
   if (busy) {
@@ -175,6 +249,7 @@ async function runReceiverOperation(operation, button) {
     showOutput(operationOutput);
     if (operation === 'info') updateDeviceSummary(operationOutput);
     if (operation === 'space') renderStorageDashboard(operationOutput);
+    if (operation === 'services') renderServicesDashboard(operationOutput);
   } catch (error) {
     setStatus('receiver-status', 'تعذر الاتصال', 'warn');
     showOutput('تعذر تنفيذ الطلب: ' + (error.message || 'خطأ غير معروف') +
