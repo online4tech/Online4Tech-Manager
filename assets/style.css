@@ -9,3 +9,11 @@ button:disabled{opacity:.6;cursor:wait}
 .output-heading h3{margin:0}
 .operation-output{white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto;background:#080e18;border:1px solid #263449;border-radius:10px;padding:16px;color:#cfe0f5;font:12px/1.8 Consolas,monospace;direction:ltr;text-align:left;min-height:90px}
 @media(max-width:800px){.output-heading{align-items:flex-start;flex-direction:column}}
+
+.device-summary{margin-top:16px;padding:14px;border:1px solid #30445f;border-radius:12px;background:#0a1320}
+.device-summary[hidden]{display:none}
+.device-summary-title{font-size:10px;color:var(--blue);font-weight:800;margin-bottom:5px}
+.device-model{font-size:18px;font-weight:900;margin-bottom:10px}
+.device-detail{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid #263449;font-size:11px}
+.device-detail span{color:var(--muted)}
+.device-detail b{text-align:left;overflow-wrap:anywhere}
