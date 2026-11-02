@@ -28,7 +28,7 @@
         <div class="status-row"><span>الجسر المحلي</span><b id="bridge-status" class="warn">لم يتم التحقق</b></div>
         <div class="status-row"><span>الرسيفر</span><b id="receiver-status" class="muted">غير متصل</b></div>
         <button id="check-bridge" class="wide-button">اختبار وجود الجسر</button>
-        <p class="hint" id="status-note">لن يتم إرسال أي أمر قبل إعداد الاتصال ومراجعة صلاحيات الجسر.</p>
+        <p class="hint" id="status-note">ابدأ بفحص الجسر المحلي، ثم اختبر اتصال SSH بالرسيفر.</p>
       </div>
     </section>
 
@@ -37,36 +37,41 @@
       <div class="grid two">
         <article class="card">
           <h3>Online4Tech Bridge</h3>
-          <p class="muted">الجسر المحلي هو الوسيط بين المتصفح والرسيفر. عنوانه الافتراضي الحالي قابل للتعديل حسب نسخة الجسر.</p>
+          <p class="muted">الجسر المحلي هو الوسيط بين المتصفح والرسيفر. يجب تشغيل start.bat على نفس الكمبيوتر.</p>
           <label for="bridge-url">عنوان الجسر المحلي</label>
           <input id="bridge-url" type="url" value="http://127.0.0.1:8765" autocomplete="url">
           <button id="save-bridge" class="primary full">حفظ العنوان على هذا الجهاز</button>
-          <p class="hint">الإعداد يُحفظ محلياً في المتصفح فقط، ولا يُرفع إلى الموقع.</p>
+          <p class="hint">يُحفظ عنوان الجسر محلياً فقط. لا يتم حفظ كلمة مرور الرسيفر.</p>
         </article>
         <article class="card">
           <h3>بيانات الرسيفر</h3>
-          <p class="muted">بيانات الاتصال لا تُرسل إلى GitHub Pages. يلزم ربطها بالجسر المحلي بعد مطابقة واجهة API الفعلية.</p>
+          <p class="muted">اتصل بعنوان IP داخل نفس الشبكة المحلية. المنفذ الافتراضي لـ SSH هو 22.</p>
           <label for="receiver-ip">عنوان IP للرسيفر</label>
-          <input id="receiver-ip" type="text" placeholder="مثال: 192.168.1.50" inputmode="decimal">
+          <input id="receiver-ip" type="text" placeholder="مثال: 192.168.1.50" inputmode="decimal" autocomplete="off">
           <label for="receiver-user">اسم المستخدم</label>
           <input id="receiver-user" type="text" value="root" autocomplete="username">
-          <label for="receiver-pass">كلمة المرور</label>
-          <input id="receiver-pass" type="password" placeholder="لا تدخلها قبل تفعيل الربط الآمن" autocomplete="new-password">
-          <p class="hint warning-text">لا تحفظ كلمة المرور في المتصفح. لا تستخدم اتصالاً مكشوفاً من خارج شبكتك.</p>
+          <label for="receiver-pass">كلمة مرور SSH</label>
+          <input id="receiver-pass" type="password" placeholder="تُستخدم مؤقتاً أثناء فتح الصفحة" autocomplete="new-password">
+          <button id="test-receiver" class="primary full">اختبار اتصال الرسيفر وقراءة معلوماته</button>
+          <p class="hint warning-text">كلمة المرور لا تُحفظ في Local Storage ولا تُرسل إلى GitHub. تُستخدم للاتصال المباشر بالجسر المحلي فقط.</p>
         </article>
       </div>
     </section>
 
     <section class="section" id="tools">
-      <div class="section-title"><div><span class="eyebrow">STEP 02</span><h2>مركز الأدوات</h2></div><span class="tag">واجهة أولية</span></div>
+      <div class="section-title"><div><span class="eyebrow">STEP 02</span><h2>مركز الأدوات</h2></div><span class="tag">عمليات قراءة وتشخيص</span></div>
       <div class="grid three">
-        <article class="tool-card"><span class="tool-icon">⌘</span><h3>معلومات الجهاز</h3><p>نوع الجهاز، صورة النظام، إصدار Enigma2 وحالة الخدمات.</p><span class="coming">بانتظار ربط API</span></article>
-        <article class="tool-card"><span class="tool-icon">↻</span><h3>إدارة الخدمات</h3><p>عرض حالة الخدمات وإجراءات الصيانة المسموح بها.</p><span class="coming">بانتظار ربط API</span></article>
+        <article class="tool-card"><span class="tool-icon">⌘</span><h3>معلومات الجهاز</h3><p>قراءة إصدار صورة النظام ومعلومات التشغيل.</p><button class="secondary action-button" data-operation="info">قراءة المعلومات</button></article>
+        <article class="tool-card"><span class="tool-icon">◫</span><h3>مساحة التخزين</h3><p>عرض الأقراص والمساحات المتاحة.</p><button class="secondary action-button" data-operation="space">فحص المساحة</button></article>
+        <article class="tool-card"><span class="tool-icon">↻</span><h3>حالة الخدمات</h3><p>قراءة حالة Enigma2 وخدمات التشفير الموجودة.</p><button class="secondary action-button" data-operation="services">فحص الخدمات</button></article>
         <article class="tool-card"><span class="tool-icon">▤</span><h3>ملفات القنوات</h3><p>الوصول إلى قوائم القنوات ومصدر Online4Tech.</p><a href="https://github.com/online4tech/Enigma2-Chanal-List-BYRomeh" target="_blank" rel="noopener">مستودع ملفات القنوات ↗</a></article>
         <article class="tool-card"><span class="tool-icon">▧</span><h3>مكتبة البلجنات</h3><p>ربط مكتبات البلجنات المعتمدة بالموقع.</p><a href="https://github.com/online4tech" target="_blank" rel="noopener">مستودعات Online4Tech ↗</a></article>
-        <article class="tool-card"><span class="tool-icon">◫</span><h3>النسخ الاحتياطي</h3><p>استعراض النسخ المتاحة وتجهيز عمليات النسخ والاستعادة.</p><span class="coming">بانتظار ربط API</span></article>
-        <article class="tool-card"><span class="tool-icon">⚙</span><h3>إعدادات النظام</h3><p>قراءة إعدادات الجهاز مع تأكيد إضافي قبل أي تغيير.</p><span class="coming">بانتظار ربط API</span></article>
+        <article class="tool-card"><span class="tool-icon">◩</span><h3>النسخ الاحتياطي</h3><p>إنشاء نسخة من إعدادات Enigma2 وTuxbox وتنزيلها على الكمبيوتر.</p><button id="download-backup" class="secondary action-button">تنزيل نسخة احتياطية</button></article>
       </div>
+      <article class="card output-card">
+        <div class="output-heading"><h3>نتيجة العمليات</h3><span class="tag">مخرجات مباشرة</span></div>
+        <pre id="operation-output" class="operation-output" aria-live="polite">نتائج فحص الجسر والرسيفر هتظهر هنا.</pre>
+      </article>
     </section>
 
     <section class="section" id="libraries">
