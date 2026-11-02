@@ -74,7 +74,9 @@ function renderStorageDashboard(output) {
   const title = document.createElement('b');
   title.textContent = 'ملخص وحدات التخزين';
   const note = document.createElement('span');
-  note.textContent = entries.length + ' وحدات فريدة بعد دمج نقاط الربط المكررة';
+  const persistentCount = entries.filter(item => item.filesystem.startsWith('/dev/')).length;
+  const temporaryCount = entries.length - persistentCount;
+  note.textContent = entries.length + ' وحدات فريدة — ' + persistentCount + ' تخزين/نظام و' + temporaryCount + ' مؤقتة';
   heading.append(title, note);
   dashboard.append(heading);
   const grid = document.createElement('div');
@@ -86,8 +88,13 @@ function renderStorageDashboard(output) {
     const top = document.createElement('div');
     top.className = 'storage-item-top';
     const fs = document.createElement('b'); fs.textContent = item.filesystem;
+    const meta = document.createElement('div'); meta.className = 'storage-item-meta';
+    const kind = document.createElement('span');
+    kind.className = 'storage-kind';
+    kind.textContent = item.filesystem === 'tmpfs' || item.filesystem === 'devtmpfs' ? 'ذاكرة مؤقتة' : item.filesystem === '/dev/root' ? 'قسم نظام' : 'وحدة تخزين';
     const percent = document.createElement('strong'); percent.textContent = item.percent + '%';
-    top.append(fs, percent);
+    meta.append(kind, percent);
+    top.append(fs, meta);
     const details = document.createElement('div'); details.className = 'storage-values';
     for (const [label,value] of [['الإجمالي',item.size],['المستخدم',item.used],['المتاح',item.available]]) {
       const cell=document.createElement('div'), small=document.createElement('span'), strong=document.createElement('b');
