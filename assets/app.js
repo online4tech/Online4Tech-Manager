@@ -183,6 +183,71 @@ function renderServicesDashboard(output) {
   return true;
 }
 
+const backupHistoryKey = 'o4t-backup-history';
+const backupHistoryLimit = 30;
+
+function readBackupHistory() {
+  try {
+    const value = JSON.parse(localStorage.getItem(backupHistoryKey) || '[]');
+    return Array.isArray(value) ? value.filter(item => item && typeof item.id === 'string' && typeof item.filename === 'string') : [];
+  } catch (_) { return []; }
+}
+
+function formatBackupSize(bytes) {
+  return bytes < 1024 * 1024 ? (bytes / 1024).toFixed(1) + ' KB' : (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function saveBackupHistory(items) {
+  try {
+    localStorage.setItem(backupHistoryKey, JSON.stringify(items.slice(0, backupHistoryLimit)));
+    return true;
+  } catch (_) {
+    const message = 'تعذر حفظ سجل النسخ في المتصفح؛ قد تكون مساحة التخزين ممتلئة أو غير متاحة.';
+    const note = $('backup-status');
+    if (note) { note.textContent = message; note.className = 'backup-status is-warning'; }
+    return false;
+  }
+}
+
+function renderBackupHistory() {
+  const list = $('backup-history-list');
+  if (!list) return;
+  const items = readBackupHistory();
+  list.replaceChildren();
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'backup-history-empty';
+    empty.textContent = 'لا توجد نسخ مسجلة حتى الآن.';
+    list.append(empty);
+    return;
+  }
+  for (const record of items) {
+    const row = document.createElement('article');
+    row.className = 'backup-history-item';
+    const details = document.createElement('div');
+    details.className = 'backup-history-details';
+    const name = document.createElement('b');
+    name.textContent = record.filename;
+    const meta = document.createElement('span');
+    meta.textContent = formatBackupSize(Number(record.size) || 0) + ' · ' + new Date(record.createdAt).toLocaleString('ar-EG');
+    const state = document.createElement('small');
+    state.textContent = 'بدأ التنزيل من المتصفح';
+    details.append(name, meta, state);
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'text-button danger';
+    remove.textContent = 'حذف من السجل';
+    remove.addEventListener('click', () => {
+      saveBackupHistory(readBackupHistory().filter(item => item.id !== record.id));
+      renderBackupHistory();
+    });
+    row.append(details, remove);
+    list.append(row);
+  }
+}
+
+renderBackupHistory();
+
 function setBusy(button, busy, label) {
   button.disabled = busy;
   if (busy) {
@@ -324,6 +389,10 @@ $('download-backup').addEventListener('click', async (event) => {
       ? (blob.size / 1024).toFixed(1) + ' KB'
       : (blob.size / (1024 * 1024)).toFixed(2) + ' MB';
     const time = now.toLocaleString('ar-EG');
+    const history = readBackupHistory();
+    history.unshift({ id: stamp + '-' + blob.size, filename, size: blob.size, createdAt: now.toISOString() });
+    saveBackupHistory(history);
+    renderBackupHistory();
     const success = 'تم تجهيز النسخة وبدء تنزيلها — ' + size + ' — ' + time;
     setBackupStatus(success, 'is-success');
     showOutput(success + '\nاسم الملف: ' + filename + '\nالمحتويات: /etc/enigma2 و /etc/tuxbox');
@@ -333,6 +402,14 @@ $('download-backup').addEventListener('click', async (event) => {
     showOutput(message);
   } finally {
     setBusy(button, false);
+  }
+});
+
+$('clear-backup-history')?.addEventListener('click', () => {
+  if (!readBackupHistory().length) return;
+  if (window.confirm('هل تريد مسح سجل النسخ الاحتياطية من هذا المتصفح؟ لن يتم حذف ملفات النسخ من الكمبيوتر.')) {
+    saveBackupHistory([]);
+    renderBackupHistory();
   }
 });
 
