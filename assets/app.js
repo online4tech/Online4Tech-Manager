@@ -1,10 +1,12 @@
 const $ = (id) => document.getElementById(id);
 const key = 'o4t-bridge-url';
+const receiverIpKey = 'o4t-receiver-ip';
 const bridgeInput = $('bridge-url');
 let receiverCredentials = null;
 
 try {
   bridgeInput.value = localStorage.getItem(key) || bridgeInput.value;
+  $('receiver-ip').value = localStorage.getItem(receiverIpKey) || '';
 } catch (_) {}
 
 const bridgeBase = () => bridgeInput.value.trim().replace(/\/+$/, '');
@@ -129,6 +131,7 @@ $('test-receiver').addEventListener('click', async (event) => {
     return;
   }
   receiverCredentials = { host, port: 22, username, password };
+  try { localStorage.setItem(receiverIpKey, host); } catch (_) {}
   await runReceiverOperation('info', event.currentTarget);
 });
 
