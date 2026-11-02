@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090e18">
+  <title>Online4Tech | Receiver Manager</title>
+  <meta name="description" content="لوحة إدارة أجهزة Enigma2 من Online4Tech">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">O4T</span><span><b>Online4Tech</b><small>خليك دايماً أونلاين</small></span></a>
+    <nav><a href="#dashboard">الرئيسية</a><a href="#tools">الأدوات</a><a href="#libraries">المكتبات</a><a href="#connection">الاتصال</a></nav>
+    <a class="site-link" href="https://online4tech.github.io/online4Tech/">الموقع الرئيسي ↗</a>
+  </header>
+  <main class="container">
+    <section class="hero" id="dashboard">
+      <div>
+        <span class="eyebrow">RECEIVER CONTROL CENTER</span>
+        <h1>إدارة رسيفر Enigma2<br><em>من مكان واحد</em></h1>
+        <p>إدارة محلية آمنة لأجهزة VU+ وDreambox وباقي الأجهزة المتوافقة، من خلال Online4Tech Bridge.</p>
+        <div class="hero-actions"><a class="primary" href="#connection">إعداد الاتصال</a><a class="secondary" href="#tools">استعراض الأدوات</a></div>
+      </div>
+      <div class="hero-panel">
+        <div class="panel-head"><span class="dot"></span> حالة النظام <span class="muted">LOCAL MANAGER</span></div>
+        <div class="status-row"><span>واجهة الإدارة</span><b class="ok">جاهزة</b></div>
+        <div class="status-row"><span>الجسر المحلي</span><b id="bridge-status" class="warn">لم يتم التحقق</b></div>
+        <div class="status-row"><span>الرسيفر</span><b id="receiver-status" class="muted">غير متصل</b></div>
+        <button id="check-bridge" class="wide-button">اختبار وجود الجسر</button>
+        <p class="hint" id="status-note">لن يتم إرسال أي أمر قبل إعداد الاتصال ومراجعة صلاحيات الجسر.</p>
+      </div>
+    </section>
+
+    <section class="section" id="connection">
+      <div class="section-title"><div><span class="eyebrow">STEP 01</span><h2>إعداد الاتصال المحلي</h2></div><span class="tag">LAN / SSH</span></div>
+      <div class="grid two">
+        <article class="card">
+          <h3>Online4Tech Bridge</h3>
+          <p class="muted">الجسر المحلي هو الوسيط بين المتصفح والرسيفر. عنوانه الافتراضي الحالي قابل للتعديل حسب نسخة الجسر.</p>
+          <label for="bridge-url">عنوان الجسر المحلي</label>
+          <input id="bridge-url" type="url" value="http://127.0.0.1:8765" autocomplete="url">
+          <button id="save-bridge" class="primary full">حفظ العنوان على هذا الجهاز</button>
+          <p class="hint">الإعداد يُحفظ محلياً في المتصفح فقط، ولا يُرفع إلى الموقع.</p>
+        </article>
+        <article class="card">
+          <h3>بيانات الرسيفر</h3>
+          <p class="muted">بيانات الاتصال لا تُرسل إلى GitHub Pages. يلزم ربطها بالجسر المحلي بعد مطابقة واجهة API الفعلية.</p>
+          <label for="receiver-ip">عنوان IP للرسيفر</label>
+          <input id="receiver-ip" type="text" placeholder="مثال: 192.168.1.50" inputmode="decimal">
+          <label for="receiver-user">اسم المستخدم</label>
+          <input id="receiver-user" type="text" value="root" autocomplete="username">
+          <label for="receiver-pass">كلمة المرور</label>
+          <input id="receiver-pass" type="password" placeholder="لا تدخلها قبل تفعيل الربط الآمن" autocomplete="new-password">
+          <p class="hint warning-text">لا تحفظ كلمة المرور في المتصفح. لا تستخدم اتصالاً مكشوفاً من خارج شبكتك.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="tools">
+      <div class="section-title"><div><span class="eyebrow">STEP 02</span><h2>مركز الأدوات</h2></div><span class="tag">واجهة أولية</span></div>
+      <div class="grid three">
+        <article class="tool-card"><span class="tool-icon">⌘</span><h3>معلومات الجهاز</h3><p>نوع الجهاز، صورة النظام، إصدار Enigma2 وحالة الخدمات.</p><span class="coming">بانتظار ربط API</span></article>
+        <article class="tool-card"><span class="tool-icon">↻</span><h3>إدارة الخدمات</h3><p>عرض حالة الخدمات وإجراءات الصيانة المسموح بها.</p><span class="coming">بانتظار ربط API</span></article>
+        <article class="tool-card"><span class="tool-icon">▤</span><h3>ملفات القنوات</h3><p>الوصول إلى قوائم القنوات ومصدر Online4Tech.</p><a href="https://github.com/online4tech/Enigma2-Chanal-List-BYRomeh" target="_blank" rel="noopener">مستودع ملفات القنوات ↗</a></article>
+        <article class="tool-card"><span class="tool-icon">▧</span><h3>مكتبة البلجنات</h3><p>ربط مكتبات البلجنات المعتمدة بالموقع.</p><a href="https://github.com/online4tech" target="_blank" rel="noopener">مستودعات Online4Tech ↗</a></article>
+        <article class="tool-card"><span class="tool-icon">◫</span><h3>النسخ الاحتياطي</h3><p>استعراض النسخ المتاحة وتجهيز عمليات النسخ والاستعادة.</p><span class="coming">بانتظار ربط API</span></article>
+        <article class="tool-card"><span class="tool-icon">⚙</span><h3>إعدادات النظام</h3><p>قراءة إعدادات الجهاز مع تأكيد إضافي قبل أي تغيير.</p><span class="coming">بانتظار ربط API</span></article>
+      </div>
+    </section>
+
+    <section class="section" id="libraries">
+      <div class="section-title"><div><span class="eyebrow">STEP 03</span><h2>روابط Online4Tech</h2></div></div>
+      <div class="link-list">
+        <a href="https://github.com/online4tech/Enigma2-Chanal-List-BYRomeh" target="_blank" rel="noopener"><b>ملفات القنوات</b><span>Enigma2 Channel List ↗</span></a>
+        <a href="https://github.com/online4tech" target="_blank" rel="noopener"><b>مستودعات البلجنات والأدوات</b><span>GitHub Organization ↗</span></a>
+        <a href="https://online4tech.github.io/online4Tech/" target="_blank" rel="noopener"><b>الموقع الرئيسي</b><span>Online4Tech ↗</span></a>
+      </div>
+    </section>
+    <footer><b>Online4Tech Receiver Manager</b><span>مشروع مستقل — لا يغيّر ملفات الموقع الرئيسي</span></footer>
+  </main>
+  <script src="assets/app.js"></script>
+</body>
+</html>
