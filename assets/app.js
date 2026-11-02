@@ -39,6 +39,21 @@ function showOutput(value) {
   output.textContent = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 30000) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error && error.name === 'AbortError') {
+      throw new Error('انتهت مهلة الاتصال؛ تأكد من تشغيل الجسر والرسيفر ثم حاول مرة أخرى.');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
 
 function readField(source, name) {
   // Match a complete key only; avoid matching "version" inside "image-version".
@@ -408,7 +423,7 @@ $('check-bridge').addEventListener('click', async (event) => {
   setBusy(button, true, 'جارٍ فحص الجسر...');
   setStatus('bridge-status', 'جارٍ الفحص', 'warn');
   try {
-    const response = await fetch(base + '/health', { method: 'GET', cache: 'no-store' });
+    const response = await fetchWithTimeout(base + '/health', { method: 'GET', cache: 'no-store' }, 10000);
     const data = await response.json();
     if (!response.ok || data.ok !== true) throw new Error(data.error || 'الجسر لم يستجب بالشكل المتوقع.');
     setStatus('bridge-status', 'متصل — إصدار ' + (data.version || 'غير معروف'), 'ok');
@@ -436,12 +451,12 @@ async function runReceiverOperation(operation, button) {
   setBusy(button, true);
   showOutput('جارٍ الاتصال بالرسيفر وتنفيذ الفحص...');
   try {
-    const response = await fetch(base + '/run', {
+    const response = await fetchWithTimeout(base + '/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
       body: JSON.stringify({ ...receiverCredentials, operation })
-    });
+    }, 45000);
     const data = await response.json();
     if (!response.ok || !data.ok) {
       throw new Error(data.error || data.stderr || 'فشل تنفيذ العملية.');
@@ -502,12 +517,12 @@ $('download-backup').addEventListener('click', async (event) => {
   setBackupStatus('جارٍ تجهيز ملفات الإعدادات من الرسيفر…', 'is-progress');
   showOutput('جارٍ إنشاء النسخة الاحتياطية وتنزيلها على الكمبيوتر...');
   try {
-    const response = await fetch(base + '/download-backup', {
+    const response = await fetchWithTimeout(base + '/download-backup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
       body: JSON.stringify(receiverCredentials)
-    });
+    }, 180000);
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
       throw new Error(data.error || 'تعذر إنشاء النسخة الاحتياطية.');
