@@ -9,7 +9,24 @@ try {
   $('receiver-ip').value = localStorage.getItem(receiverIpKey) || '';
 } catch (_) {}
 
-const bridgeBase = () => bridgeInput.value.trim().replace(/\/+$/, '');
+function bridgeBase() {
+  const raw = bridgeInput.value.trim();
+  let url;
+  try { url = new URL(raw); } catch (_) { throw new Error('اكتب عنوان الجسر بصيغة صحيحة.'); }
+  if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' ||
+      url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
+    throw new Error('عنوان الجسر يجب أن يكون http://127.0.0.1:8765 على نفس الكمبيوتر.');
+  }
+  return url.origin;
+}
+
+function validPrivateIPv4(value) {
+  const parts = value.split('.');
+  if (parts.length !== 4 || parts.some(part => !/^\\d{1,3}$/.test(part) || Number(part) > 255)) return false;
+  const [a,b] = parts.map(Number);
+  return a === 10 || (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) || (a === 169 && b === 254);
+}
 
 function setStatus(id, message, kind = 'muted') {
   const el = $(id);
@@ -389,7 +406,7 @@ $('check-bridge').addEventListener('click', async (event) => {
   setBusy(button, true, 'جارٍ فحص الجسر...');
   setStatus('bridge-status', 'جارٍ الفحص', 'warn');
   try {
-    const response = await fetch(bridgeBase() + '/health', { method: 'GET', cache: 'no-store' });
+    const response = await fetch(base + '/health', { method: 'GET', cache: 'no-store' });
     const data = await response.json();
     if (!response.ok || data.ok !== true) throw new Error(data.error || 'الجسر لم يستجب بالشكل المتوقع.');
     setStatus('bridge-status', 'متصل — إصدار ' + (data.version || 'غير معروف'), 'ok');
@@ -471,7 +488,7 @@ $('download-backup').addEventListener('click', async (event) => {
   setBackupStatus('جارٍ تجهيز ملفات الإعدادات من الرسيفر…', 'is-progress');
   showOutput('جارٍ إنشاء النسخة الاحتياطية وتنزيلها على الكمبيوتر...');
   try {
-    const response = await fetch(bridgeBase() + '/download-backup', {
+    const response = await fetch(base + '/download-backup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       cache: 'no-store',
