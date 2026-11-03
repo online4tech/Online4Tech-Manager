@@ -249,3 +249,6 @@ footer{font-size:12px}
   .section-title{align-items:flex-start;gap:10px}
   .section-title h2{font-size:21px}
 }
+
+/* Keep category accordions full-width inside the catalog area */
+#catalog-plugin-grid{display:block}
