@@ -115,28 +115,33 @@
     return card;
   }
 
-  function filteredPlugins() {
+  function searchMatchedPlugins() {
     const query = $('catalog-search').value.trim().toLocaleLowerCase();
     return state.plugins.filter(plugin => {
-      const matchesCategory = !state.category || plugin.category === state.category;
       const searchable = [
         plugin.name, plugin.description, plugin.category, plugin.developer,
         ...(Array.isArray(plugin.tags) ? plugin.tags : [])
       ].join(' ').toLocaleLowerCase();
-      return matchesCategory && (!query || searchable.includes(query));
+      return !query || searchable.includes(query);
     });
   }
 
-  function renderCategoryNav(filtered) {
+  function filteredPlugins() {
+    return searchMatchedPlugins().filter(plugin =>
+      !state.category || plugin.category === state.category
+    );
+  }
+
+  function renderCategoryNav(searchMatched) {
     const nav = $('catalog-category-nav');
     nav.replaceChildren();
     const counts = new Map();
-    filtered.forEach(plugin => counts.set(plugin.category || 'Other', (counts.get(plugin.category || 'Other') || 0) + 1));
+    searchMatched.forEach(plugin => counts.set(plugin.category || 'Other', (counts.get(plugin.category || 'Other') || 0) + 1));
 
     const all = make('button', 'catalog-category-chip' + (!state.category ? ' is-active' : ''));
     all.type = 'button';
     all.append(document.createTextNode('كل الأنواع '));
-    all.append(make('small', '', String(filtered.length)));
+    all.append(make('small', '', String(searchMatched.length)));
     all.addEventListener('click', () => { state.category = ''; $('catalog-category').value = ''; render(); });
     nav.append(all);
 
@@ -153,8 +158,11 @@
   }
 
   function render() {
-    const filtered = filteredPlugins();
-    renderCategoryNav(filtered);
+    const searchMatched = searchMatchedPlugins();
+    const filtered = state.category
+      ? searchMatched.filter(plugin => plugin.category === state.category)
+      : searchMatched;
+    renderCategoryNav(searchMatched);
     const grid = $('catalog-plugin-grid');
     grid.replaceChildren();
 
