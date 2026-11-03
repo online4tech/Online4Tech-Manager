@@ -74,8 +74,7 @@
     const card = make('article', 'catalog-plugin-card');
     const top = make('div', 'catalog-plugin-top');
     top.append(
-      make('span', 'catalog-plugin-category', categoryLabels[plugin.category] || plugin.category || 'Enigma2'),
-      make('span', 'catalog-plugin-version', plugin.version || 'الإصدار غير محدد')
+      make('span', 'catalog-plugin-category', categoryLabels[plugin.category] || plugin.category || 'Enigma2')
     );
     const title = make('h3', '', plugin.name || plugin.slug || 'إضافة Enigma2');
     const description = make('p', 'catalog-plugin-description', plugin.description || 'لا يوجد وصف متاح لهذه الإضافة.');
